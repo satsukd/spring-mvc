@@ -10,9 +10,9 @@ public interface ProductDao {
 
      Product getById(int id);
 
-    void update(int id, String name, double price, LocalDateTime addTime, String picturePath);
+    void update(Product product);
 
     void delete(int id);
 
-    int add(String name, double price, String picturePath);
+    int add(Product product);
 }

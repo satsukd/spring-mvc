@@ -5,6 +5,8 @@ import com.study.shop.security.SecurityService;
 import com.study.shop.security.entity.Session;
 import com.study.shop.service.ProductService;
 import com.study.shop.web.templater.PageGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import java.util.List;
 
 @Controller
 public class WebController {
+    private static final Logger logger = LoggerFactory.getLogger(WebController.class);
 
     @Autowired
     private ProductService productService;
@@ -34,7 +37,7 @@ public class WebController {
         params.put("products", products);
 
         PageGenerator pageGenerator = PageGenerator.instance();
-        String page = pageGenerator.getPage("products.html", params);
+        String page = pageGenerator.getPage("html/products.html", params);
 
         return page;
     }
@@ -43,14 +46,15 @@ public class WebController {
     @RequestMapping(path = "/product/add", method = RequestMethod.GET)
     public String addProductPage() {
         PageGenerator pageGenerator = PageGenerator.instance();
-        String page = pageGenerator.getPage("addProduct.html");
+        String page = pageGenerator.getPage("html/addProduct.html");
 
         return page;
     }
 
     @RequestMapping(path = "/product/add", method = RequestMethod.POST)
     public String addProduct(@RequestParam String name, @RequestParam double price, @RequestParam String picturePath) {
-        int id = productService.add(name, price, picturePath);
+        Product product = new Product(name, price, picturePath);
+        int id = productService.add(product);
 
         System.out.println("Product with id: " + id + " was created!");
         return "redirect:/products";
@@ -64,7 +68,7 @@ public class WebController {
         Product product = productService.getById(id);
         params.put("product", product);
 
-        String page = pageGenerator.getPage("editProduct.html", params);
+        String page = pageGenerator.getPage("html/editProduct.html", params);
 
         return page;
     }
@@ -72,9 +76,10 @@ public class WebController {
     @RequestMapping(path = "/product/edit", method = RequestMethod.POST)
     public String addProduct(@RequestParam int id, @RequestParam String name, @RequestParam double price, @RequestParam String picturePath) {
 
-        productService.update(id, name, price, LocalDateTime.now(), picturePath);
+        Product product = new Product(id, name, price, picturePath);
+        productService.update(product);
 
-        System.out.println("Product with id: " + id + " was edited!");
+        logger.debug("Product with id: {} was edited!", id);
         return "redirect:/products";
     }
 
@@ -82,7 +87,7 @@ public class WebController {
     public String deleteProduct(@PathVariable int id) {
         productService.delete(id);
 
-        System.out.println("Product with id: " + id + " was deleted!");
+        logger.debug("Product with id: {} was deleted!", id);
 
         return "redirect:/products";
     }
@@ -91,7 +96,7 @@ public class WebController {
     @RequestMapping(path = "/login", method = RequestMethod.GET)
     public String loginPage() {
         PageGenerator pageGenerator = PageGenerator.instance();
-        String page = pageGenerator.getPage("login.html");
+        String page = pageGenerator.getPage("html/login.html");
 
         return page;
     }

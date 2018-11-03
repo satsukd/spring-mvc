@@ -3,7 +3,6 @@ package com.study.shop.service;
 import com.study.shop.dao.ProductDao;
 import com.study.shop.entity.Product;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -25,8 +24,8 @@ public class DefaultProductService implements ProductService {
     }
 
     @Override
-    public void update(int id, String name, double price, LocalDateTime addTime, String picturePath) {
-        productDao.update(id, name, price, addTime, picturePath);
+    public void update(Product product) {
+        productDao.update(product);
     }
 
     @Override
@@ -35,8 +34,8 @@ public class DefaultProductService implements ProductService {
     }
 
     @Override
-    public int add(String name, double price, String picturePath) {
-        return productDao.add(name, price, picturePath);
+    public int add(Product product) {
+        return productDao.add(product);
     }
 
     public void setProductDao(ProductDao productDao) {

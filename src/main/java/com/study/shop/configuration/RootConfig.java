@@ -13,6 +13,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+
+import javax.sql.DataSource;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Properties;
 
 @Configuration
 public class RootConfig {
@@ -50,5 +57,32 @@ public class RootConfig {
     UserDao userDao() {
         logger.debug("initialization of userDao");
         return new JdbcUserDao();
+    }
+
+    @Bean
+    JdbcTemplate jdbcTemplate() {
+        return new JdbcTemplate(dataSource());
+    }
+
+    @Bean
+    DataSource dataSource() {
+        DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
+        Properties properties = new Properties();
+        try (FileReader fileReader = new FileReader("src/main/resources/application.properties")) {
+            properties.load(fileReader);
+            String driver = properties.getProperty("jdbc.driver");
+            String url = properties.getProperty("jdbc.url");
+            String username = properties.getProperty("jdbc.username");
+            String password = properties.getProperty("jdbc.password");
+            driverManagerDataSource.setUrl(url);
+            driverManagerDataSource.setUsername(username);
+            driverManagerDataSource.setPassword(password);
+            driverManagerDataSource.setDriverClassName(driver);
+
+            return driverManagerDataSource;
+
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 }

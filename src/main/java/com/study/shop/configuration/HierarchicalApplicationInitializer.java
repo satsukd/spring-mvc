@@ -9,7 +9,6 @@ public class HierarchicalApplicationInitializer extends AbstractAnnotationConfig
     @Override
     protected Filter[] getServletFilters() {
         logger.debug("CALLED getServletFilters()");
-//        return new Filter[]{new DelegatingFilterProxy()};
         return new Filter[]{new AdminSecurityFilter()};
     }
 

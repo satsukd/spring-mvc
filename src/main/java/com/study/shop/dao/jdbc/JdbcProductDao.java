@@ -3,121 +3,69 @@ package com.study.shop.dao.jdbc;
 import com.study.shop.dao.ProductDao;
 import com.study.shop.dao.jdbc.mapper.ProductRowMapper;
 import com.study.shop.entity.Product;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 
-import java.sql.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Date;
 import java.util.List;
 
 
 public class JdbcProductDao implements ProductDao {
-    private final static ProductRowMapper PRODUCT_ROW_MAPPER = new ProductRowMapper();
+    private static final Logger logger = LoggerFactory.getLogger(JdbcProductDao.class);
+    private static final ProductRowMapper PRODUCT_ROW_MAPPER = new ProductRowMapper();
+    private static final String SQL_GET_ALL_PRODUCTS = "SELECT id, name, price, add_date, picture_path FROM product";
+    private static final String SQL_GET_PRODUCT_BY_ID = "SELECT id, name, price, add_date, picture_path FROM product WHERE id = ?";
+    private static final String SQL_UPDATE_PRODUCT_BY_ID = "UPDATE product SET name = ?, price = ?, add_date = ?, picture_path = ? WHERE id = ?";
+    private static final String SQL_DELETE_PRODUCT_BY_ID = "DELETE FROM product WHERE id = ?";
+    private static final String SQL_INSERT_PRODUCT = "INSERT INTO product (id, name, price, picture_path) VALUES(DEFAULT, ?, ?, ?)";
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Override
     public List<Product> getAll() {
-        try (Connection connection = JdbcConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT id, name, price, add_date, picture_path FROM product");
-             ResultSet resultSet = preparedStatement.executeQuery();) {
-
-            List<Product> productList = new ArrayList<>();
-
-            while (resultSet.next()) {
-                Product product = PRODUCT_ROW_MAPPER.mapRow(resultSet);
-                productList.add(product);
-            }
-
-            return productList;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return jdbcTemplate.query(SQL_GET_ALL_PRODUCTS, PRODUCT_ROW_MAPPER);
     }
 
     @Override
     public Product getById(int id) {
-        try (Connection connection = JdbcConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT id, name, price, add_date, picture_path FROM product WHERE id = ?")
-        ) {
-            preparedStatement.setInt(1, id);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-
-                List<Product> productList = new ArrayList<>();
-
-                while (resultSet.next()) {
-                    Product product = PRODUCT_ROW_MAPPER.mapRow(resultSet);
-                    return product;
-                }
-            }
-
-            return null;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return jdbcTemplate.queryForObject(SQL_GET_PRODUCT_BY_ID, new Object[]{id}, PRODUCT_ROW_MAPPER);
     }
 
     @Override
-    public void update(int id, String name, double price, LocalDateTime addTime, String picturePath) {
-        try (Connection connection = JdbcConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("UPDATE product SET name = ?, price = ?, add_date = ?, picture_path = ? WHERE id = ?")
-        ) {
-            preparedStatement.setString(1, name);
-            preparedStatement.setDouble(2, price);
-            preparedStatement.setTimestamp(3, Timestamp.valueOf(addTime));
-            preparedStatement.setString(4, picturePath);
-            preparedStatement.setInt(5, id);
-            int rowsAffected = preparedStatement.executeUpdate();
-
-            if (rowsAffected == 0) {
-                throw new IllegalArgumentException("id = " + id + " not found!");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    public void update(Product product) {
+        jdbcTemplate.update(SQL_UPDATE_PRODUCT_BY_ID, product.getName(), product.getPrice(), new java.sql.Date(new Date().getTime()), product.getPicturePath(), product.getId());
     }
 
     @Override
     public void delete(int id) {
-        try (Connection connection = JdbcConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM product WHERE id = ?")
-        ) {
-            preparedStatement.setInt(1, id);
-            int rowsAffected = preparedStatement.executeUpdate();
-
-            if (rowsAffected == 0) {
-                throw new IllegalArgumentException("id = " + id + " not found!");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        jdbcTemplate.update(SQL_DELETE_PRODUCT_BY_ID, id);
     }
 
     @Override
-    public int add(String name, double price, String picturePath) {
-        try (Connection connection = JdbcConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO product (id, name, price, picture_path) VALUES(DEFAULT, ?, ?, ?)");
-             PreparedStatement serialStatement = connection.prepareStatement("SELECT currval('product_id_seq')")
-        ) {
-            preparedStatement.setString(1, name);
-            preparedStatement.setDouble(2, price);
-            preparedStatement.setString(3, picturePath);
-            int rowsAffected = preparedStatement.executeUpdate();
-
-            if (rowsAffected == 0) {
-                throw new SQLException("Cannot insert a new row!");
+    public int add(Product product) {
+        KeyHolder key = new GeneratedKeyHolder();
+        jdbcTemplate.update(new PreparedStatementCreator() {
+            @Override
+            public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+                final PreparedStatement ps = connection.prepareStatement(SQL_INSERT_PRODUCT,
+                        Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, product.getName());
+                ps.setDouble(2, product.getPrice());
+                ps.setString(3, product.getPicturePath());
+                return ps;
             }
+        }, key);
 
-            int id;
-            try (ResultSet resultSet = serialStatement.executeQuery()) {
-                id = -1;
-                while (resultSet.next()) {
-                    id = resultSet.getInt(1);
-                    break;
-                }
-                resultSet.close();
-            }
-
-            return id;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return (int) key.getKeys().get("id");
     }
 }
