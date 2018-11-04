@@ -15,8 +15,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 
-public class AdminSecurityFilter implements Filter {
-    private static final Logger logger = LoggerFactory.getLogger(AdminSecurityFilter.class);
+public class SecurityFilter implements Filter {
+    private static final Logger logger = LoggerFactory.getLogger(SecurityFilter.class);
 
     @Autowired
     private SecurityService securityService;

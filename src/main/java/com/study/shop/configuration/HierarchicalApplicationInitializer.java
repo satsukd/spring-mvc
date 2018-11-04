@@ -1,6 +1,6 @@
 package com.study.shop.configuration;
 
-import com.study.shop.web.filter.AdminSecurityFilter;
+import com.study.shop.web.filter.SecurityFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 import javax.servlet.Filter;
@@ -9,7 +9,7 @@ public class HierarchicalApplicationInitializer extends AbstractAnnotationConfig
     @Override
     protected Filter[] getServletFilters() {
         logger.debug("CALLED getServletFilters()");
-        return new Filter[]{new AdminSecurityFilter()};
+        return new Filter[]{new SecurityFilter()};
     }
 
     @Override
