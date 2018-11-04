@@ -1,5 +1,7 @@
 package com.study.shop.configuration;
 
+import com.study.shop.configuration.entity.DatabaseProperties;
+import com.study.shop.configuration.entity.YamlDatabasePropertiesLoader;
 import com.study.shop.dao.ProductDao;
 import com.study.shop.dao.UserDao;
 import com.study.shop.dao.jdbc.JdbcProductDao;
@@ -17,9 +19,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.sql.DataSource;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.Properties;
 
 @Configuration
 public class RootConfig {
@@ -64,23 +64,17 @@ public class RootConfig {
         return new JdbcTemplate(dataSource());
     }
 
+
     @Bean
     DataSource dataSource() {
         DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
-        Properties properties = new Properties();
-        try (FileReader fileReader = new FileReader("src/main/resources/application.properties")) {
-            properties.load(fileReader);
-            String driver = properties.getProperty("jdbc.driver");
-            String url = properties.getProperty("jdbc.url");
-            String username = properties.getProperty("jdbc.username");
-            String password = properties.getProperty("jdbc.password");
-            driverManagerDataSource.setUrl(url);
-            driverManagerDataSource.setUsername(username);
-            driverManagerDataSource.setPassword(password);
-            driverManagerDataSource.setDriverClassName(driver);
-
+        try {
+            DatabaseProperties databaseProperties = YamlDatabasePropertiesLoader.load("src/main/resources/properties.yaml");
+            driverManagerDataSource.setUrl(databaseProperties.getUrl());
+            driverManagerDataSource.setUsername(databaseProperties.getUsername());
+            driverManagerDataSource.setPassword(databaseProperties.getPassword());
+            driverManagerDataSource.setDriverClassName(databaseProperties.getDriver());
             return driverManagerDataSource;
-
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
         }

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import java.nio.charset.Charset;
 import java.util.List;
 
 @Controller
@@ -57,6 +58,10 @@ public class WebController {
 
     @RequestMapping(path = "/product/edit", method = RequestMethod.POST)
     public String addProduct(@RequestParam int id, @RequestParam String name, @RequestParam double price, @RequestParam String picturePath) {
+
+        byte[] b = name.getBytes();
+        String s = new String(b, Charset.forName("UTF-8"));
+//        String txnName = URLDecoder.decode(name, "UTF-8");
         Product product = new Product(id, name, price, picturePath);
         productService.update(product);
         return "redirect:/products";
