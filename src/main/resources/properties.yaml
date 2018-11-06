@@ -1,4 +1,8 @@
+#jdbc.driver : org.postgresql.Driver
+#jdbc.url : jdbc:postgresql://localhost/shop
+#jdbc.username : postgres
+#jdbc.password : root
 jdbc.driver : org.postgresql.Driver
-jdbc.url : jdbc:postgresql://localhost/shop
-jdbc.username : postgres
-jdbc.password : root
+jdbc.url : jdbc:postgresql://ec2-46-51-184-229.eu-west-1.compute.amazonaws.com/dejqdv83pdsqd?sslmode=require
+jdbc.username : bxnzqkfpzniuyw
+jdbc.password : 98137e76b1a510a5b42f68346a0c1ccc49611d76d42dedaeb98137fbe685af16
